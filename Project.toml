@@ -1,13 +1,22 @@
 name = "LegolasFlux"
 uuid = "eb5f792d-d1b1-4535-bae3-d5649ec7daa4"
-authors = ["Eric Hanson <5846501+ericphanson@users.noreply.github.com> and contributors"]
+authors = ["Beacon Biosignals, Inc."]
 version = "0.1.0"
 
+[deps]
+Arrow = "69666777-d1a9-59fb-9406-91d4454c9d45"
+Legolas = "741b9549-f6ed-4911-9fbf-4a1c0c97f0cd"
+Tables = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
+
 [compat]
-julia = "1"
+Arrow = "1"
+Legolas = "0.1"
+Tables = "1"
+julia = "1.5"
 
 [extras]
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "Flux"]
