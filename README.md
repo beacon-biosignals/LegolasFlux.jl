@@ -9,7 +9,7 @@ from e.g. BSON.jl, and hopefully much more robust.
 With this approach, however, if you change the code such that the weights are no longer valid (e.g. add a layer),
 you will not be able to load back the same model.
 
-The code currently only support `Float32` parameters.
+The code currently only supports `Float32` parameters.
 
 ## Usage
 
