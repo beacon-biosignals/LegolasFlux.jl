@@ -23,9 +23,8 @@ ArrowTypes.arrowname(::Type{<:FlatArray}) = FLATARRAY_ARROW_NAME
 ArrowTypes.JuliaType(::Val{FLATARRAY_ARROW_NAME}) = FlatArray
 
 const ModelRow = Legolas.@row("legolas-flux@1",
-     weights::Vector{FlatArray} = FlatArray.(weights),
-     architecture_version::Union{Missing, Int})
-
+                              weights::Vector{FlatArray} = FlatArray.(weights),
+                              architecture_version::Union{Missing,Int})
 
 """
     write_model_row(io_or_path; kwargs...)
@@ -33,8 +32,8 @@ const ModelRow = Legolas.@row("legolas-flux@1",
 A light wrapper around `Legolas.write` to write a table
 with a single row.
 """
-function write_model_row(io_or_path, row; kwargs...)    
-     return Legolas.write(io_or_path, [row], LEGOLAS_SCHEMA; validate=true, kwargs...)
+function write_model_row(io_or_path, row; kwargs...)
+    return Legolas.write(io_or_path, [row], LEGOLAS_SCHEMA; validate=true, kwargs...)
 end
 
 """
@@ -43,12 +42,11 @@ end
 A light wrapper around `Legolas.read` to load a table
 with a single row.
 """
-function read_model_row(io_or_path; kwargs...)    
+function read_model_row(io_or_path; kwargs...)
     table = Legolas.read(io_or_path; validate=true, kwargs...)
     Legolas.validate(table, LEGOLAS_SCHEMA)
     rows = ModelRow.(Tables.rows(table))
     return only(rows)
 end
-
 
 end # module
