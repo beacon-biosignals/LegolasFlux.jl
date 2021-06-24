@@ -41,5 +41,5 @@ end
 
     w = Weights(v)
     tbl = [(; weights = w)]
-    Arrow.Table(Arrow.tobuffer(tbl)).weights[1] == w
+    @test Arrow.Table(Arrow.tobuffer(tbl)).weights[1] == w
 end
