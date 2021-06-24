@@ -90,33 +90,34 @@ const ModelRow = Legolas.@row("legolas-flux@1",
     write_model_row(io_or_path; kwargs...)
 
 A light wrapper around `Legolas.write` to write a table
-with a single row.
+with a single row. `kwargs` are forwarded to an internal
+invocation of `Arrow.write`.
 """
 function write_model_row(io_or_path, row; kwargs...)
     return Legolas.write(io_or_path, [row], LEGOLAS_SCHEMA; validate=true, kwargs...)
 end
 
 """
-    read_model_row(io_or_path; kwargs...) -> ModelRow
+    read_model_row(io_or_path) -> ModelRow
 
 A light wrapper around `Legolas.read` to retrieve
 a `ModelRow` from a table with a single row, such
-as the output of [`write_model_row`](@ref).
+as the output of [`write_model_row`](@ref)`.
 """
-function read_model_row(io_or_path; kwargs...)
-    table = read_models(io_or_path; kwargs...)
+function read_model_row(io_or_path)
+    table = read_models(io_or_path)
     rows = ModelRow.(Tables.rows(table))
     return only(rows)
 end
 
 """
-    read_models(io_or_path; kwargs...) -> Arrow.Table
+    read_models(io_or_path) -> Arrow.Table
 
 A light wrapper around `Legolas.read` to load a table
 and validate it has the LegolasFlux schema.
 """
-function read_models(io_or_path; kwargs...)
-    table = Legolas.read(io_or_path; validate=true, kwargs...)
+function read_models(io_or_path)
+    table = Legolas.read(io_or_path; validate=true)
     Legolas.validate(table, LEGOLAS_SCHEMA)
     return table
 end
