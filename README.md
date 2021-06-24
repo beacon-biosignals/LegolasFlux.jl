@@ -1,5 +1,8 @@
 # LegolasFlux
 
+[![CI](https://github.com/beacon-biosignals/LegolasFlux.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/beacon-biosignals/LegolasFlux.jl/actions/workflows/CI.yml)
+[![codecov](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl/branch/main/graph/badge.svg?token=NHYUL22HCC)](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl)
+
 LegolasFlux provides some simple functionality to use [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/)'s
 extensible Arrow schemas as means to serialize Flux models using Flux's `params` and `loadparams!`.
 
