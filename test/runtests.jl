@@ -1,7 +1,7 @@
 using LegolasFlux
 using Test
 using Flux, LegolasFlux
-using LegolasFlux: Weights, FlatArray
+using LegolasFlux: Weights, FlatArray, ModelRow
 using Arrow
 
 function make_my_model()
@@ -18,11 +18,11 @@ end
     Flux.loadparams!(my_model, test_weights())
 
     model_row = ModelRow(; weights=collect(params(my_model)))
-    write_model_row("my_model.arrow", model_row)
+    write_model_row("my_model.model.arrow", model_row)
 
     fresh_model = make_my_model()
 
-    model_row = read_model_row("my_model.arrow")
+    model_row = read_model_row("my_model.model.arrow")
     weights = collect(model_row.weights)
     Flux.loadparams!(fresh_model, weights)
 
@@ -30,7 +30,7 @@ end
 
     @test all(x -> eltype(x) == Float32, weights)
 
-    rm("my_model.arrow")
+    rm("my_model.model.arrow")
 end
 
 @testset "`Weights`" begin

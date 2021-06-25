@@ -29,12 +29,12 @@ using LegolasFlux
 
 # We can save whatever other columns we'd like to as well as the `weights`.
 model_row = ModelRow(; weights = collect(params(cpu(my_model))), architecture_version = 1, loss = 0.5)
-write_model_row("my_model.arrow", model_row)
+write_model_row("my_model.model.arrow", model_row)
 
 # Great! Later on, we want to re-load our model weights.
 fresh_model = make_my_model()
 
-model_row = read_model_row("my_model.arrow")
+model_row = read_model_row("my_model.model.arrow")
 Flux.loadparams!(fresh_model, collect(model_row.weights))
 # Now our params have been loaded back into `fresh_model`.
 # Note we needed to `collect` the weights before we use them.
@@ -47,28 +47,35 @@ model_row.loss # 0.5
 We can make use of the `architecture_version` column to specify a version number for the architectures, in order
 to keep track of for which architectures the weights are valid for.
 
-## `ModelRow`
+## `LegolasFlux.ModelRow`
 
-A `ModelRow` is the central export of LegolasFlux. It acts as a Tables.jl-compatible row that can store the weights
+A `LegolasFlux.ModelRow` is the central object of LegolasFlux. It acts as a Tables.jl-compatible row that can store the weights
 of a Flux model in the `weights` column, optionally an `architecture_version` (defaults to `missing`), and any
 other columns the user desires.
+
+`ModelRow` is not exported because downstream models likely want to define their own rows which extend the schema provided by LegolasFlux
+that might end up being called something similar. See the next section for more on extensibility.
 
 ## Extensibility
 
 As a Legolas.jl schema, it is meant to be extended. For example, let's say I had an MNIST classification model
 that I call `Digits`. I am very committed to reproducibility, so I store the `commit_sha` of my model's repo
 with every training run, and I also wish to save the accuracy and epoch. I might create a `DigitsRow` which is
-a schema extension of the `legolas-flux` schema:
+a schema extension of the `legolas-flux.model` schema:
 
 ```julia
 using Legolas, LegolasFlux
 
-const DigitsRow = Legolas.@row("digits@1" > "legolas-flux@1",
+const DigitsRow = Legolas.@row("digits.model@1" > "legolas-flux.model@1",
                          epoch::Union{Missing, Int},
                          accuracy::Union{Missing, Float32},
                          commit_sha::Union{Missing, String})
 ```
 
-Now I can use a `DigitsRow` much like LegolasFlux's `ModelRow`. It has the same required `weights` column and optional `architecture_version` column, as well as the additional `epoch`, `accuracy`, and `commit_sha` columns.
+Now I can use a `DigitsRow` much like LegolasFlux's `ModelRow`. It has the same required `weights` column and optional `architecture_version` column, as well as the additional `epoch`, `accuracy`, and `commit_sha` columns. As a naming convention,
+one might name files produced by this row as e.g. `training_run.digits.model.arrow`.
+
+Note in this example the schema is called `digits.model` instead of just say `digits`, since the package Digits might want to
+create other Legolas schemas as well at some point.
 
 Check out the [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/) repo to see more about how its extensible schema system works.

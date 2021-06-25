@@ -1,13 +1,13 @@
 module LegolasFlux
 
-export ModelRow, write_model_row, read_model_row, read_models
+export write_model_row, read_model_row
 
 using Legolas
 using Arrow
 using Arrow.ArrowTypes
 using Tables
 
-const LEGOLAS_SCHEMA = Legolas.Schema("legolas-flux@1")
+const LEGOLAS_SCHEMA = Legolas.Schema("legolas-flux.model@1")
 
 #####
 ##### `FlatArray`
@@ -79,7 +79,7 @@ ArrowTypes.JuliaType(::Val{WEIGHTS_ARROW_NAME}) = Weights
 ##### `ModelRow`
 #####
 
-const ModelRow = Legolas.@row("legolas-flux@1",
+const ModelRow = Legolas.@row("legolas-flux.model@1",
                               weights::Weights = Weights(weights),
                               architecture_version::Union{Missing,Int})
 #####
@@ -105,21 +105,10 @@ a `ModelRow` from a table with a single row, such
 as the output of [`write_model_row`](@ref)`.
 """
 function read_model_row(io_or_path)
-    table = read_models(io_or_path)
+    table = Legolas.read(io_or_path; validate=true)
     rows = ModelRow.(Tables.rows(table))
     return only(rows)
 end
 
-"""
-    read_models(io_or_path) -> Arrow.Table
-
-A light wrapper around `Legolas.read` to load a table
-and validate it has the LegolasFlux schema.
-"""
-function read_models(io_or_path)
-    table = Legolas.read(io_or_path; validate=true)
-    Legolas.validate(table, LEGOLAS_SCHEMA)
-    return table
-end
 
 end # module
