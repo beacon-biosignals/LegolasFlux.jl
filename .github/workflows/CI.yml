@@ -38,14 +38,6 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: webfactory/ssh-agent@v0.5.0
-        with:
-          ssh-private-key: ${{ secrets.BEACONBUDDY_SSH_KEY }}
-      - name: Set up registries
-        run: |
-          git config --global url.git@github.com:.insteadOf https://github.com/
-          git clone git@github.com:JuliaRegistries/General.git ~/.julia/registries/General
-          git clone git@github.com:beacon-biosignals/BeaconRegistry.git ~/.julia/registries/Beacon
       - uses: actions/cache@v2
         with:
           path: ~/.julia/artifacts
