@@ -4,7 +4,8 @@
 [![codecov](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl/branch/main/graph/badge.svg?token=NHYUL22HCC)](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl)
 
 LegolasFlux provides some simple functionality to use [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/)'s
-extensible Arrow schemas as means to serialize Flux models using Flux's `params` and `loadparams!`.
+extensible Arrow schemas as means to serialize Flux models similarly to using Flux's `params` and `loadparams!`
+(instead, we export similar functions `weights` and `loadweights!` which handle layers like `BatchNorm` correctly for this purpose).
 
 The aim is to serialize only the numeric weights, *not* the code defining the model. This is a very different approach
 from e.g. BSON.jl, and hopefully much more robust.
@@ -28,14 +29,14 @@ my_model = make_my_model()
 using LegolasFlux
 
 # We can save whatever other columns we'd like to as well as the `weights`.
-model_row = ModelRow(; weights = collect(params(cpu(my_model))), architecture_version = 1, loss = 0.5)
+model_row = ModelRow(; weights = collect(weights(cpu(my_model))), architecture_version = 1, loss = 0.5)
 write_model_row("my_model.model.arrow", model_row)
 
 # Great! Later on, we want to re-load our model weights.
 fresh_model = make_my_model()
 
 model_row = read_model_row("my_model.model.arrow")
-Flux.loadparams!(fresh_model, collect(model_row.weights))
+loadweights!(fresh_model, collect(model_row.weights))
 # Now our params have been loaded back into `fresh_model`.
 # Note we needed to `collect` the weights before we use them.
 

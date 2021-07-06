@@ -1,8 +1,10 @@
-# modified from
+# Model modified from
 # https://discourse.julialang.org/t/how-to-drop-the-dropout-layers-in-flux-jl-when-assessing-model-performance/19924
 
 using Flux, Statistics, Random, Test
-using MLDatasets: MNIST
+# Uncomment to use MNIST data
+# using MLDatasets: MNIST
+using StableRNGs
 using Flux: onehotbatch, onecold, crossentropy, throttle
 using Base.Iterators: repeated, partition
 using Legolas, LegolasFlux
@@ -25,12 +27,12 @@ function DigitsModel(config::DigitsConfig = DigitsConfig())
     chain = Chain(
         Dropout(dropout_rate),
         Conv((3, 3), 1=>32, relu),
-        BatchNorm(32, relu),
-        x -> maxpool(x, (2,2)),
+        # BatchNorm(32, relu),
+        MaxPool((2,2)),
         Dropout(dropout_rate),
         Conv((3, 3), 32=>16, relu),
         Dropout(dropout_rate),
-        x -> maxpool(x, (2,2)),
+        MaxPool((2,2)),
         Dropout(dropout_rate),
         Conv((3, 3), 16=>10, relu),
         Dropout(dropout_rate),
@@ -48,21 +50,33 @@ const DigitsRow = Legolas.@row("digits.model@1" > "legolas-flux.model@1",
                                accuracy::Union{Missing, Float32})
 
 function DigitsRow(model::DigitsModel; epoch=missing, accuracy=missing)
-    weights = collect(params(model))
-    return DigitsRow(; weights, model.config, epoch, accuracy)
+    w = collect(weights(model))
+    return DigitsRow(; weights=w, model.config, epoch, accuracy)
 end
 
 function DigitsModel(row)
     m = DigitsModel(row.config)
-    Flux.loadparams!(m, collect(row.weights))
+    loadweights!(m, collect(row.weights))
     return m
 end
 
-N_train = 10_000
-N_test = 500
 
-train_x, train_y = MNIST.traindata(Float32, 1:N_train)
-test_x,  test_y  = MNIST.testdata(Float32, 1:N_test)
+# Increase to get more training/test data
+N_train = 1_000
+N_test = 50
+
+##
+# to use MNIST data, uncomment these
+# train_x, train_y = MNIST.traindata(Float32, 1:N_train)
+# test_x,  test_y  = MNIST.testdata(Float32, 1:N_test)
+
+# Random data:
+rng = StableRNG(735)
+train_x = rand(rng, Float32, 28, 28, N_train)
+train_y = rand(rng, 0:9, N_train)
+test_x = rand(rng, Float32, 28, 28, N_test)
+test_y = rand(rng, 0:9, N_test)
+##
 
 # Partition into batches of size 32
 batch_size = 32
@@ -79,16 +93,18 @@ function accuracy(m, x, y)
     return val
 end
 
-function train_model!(m)
+function train_model!(m; N = N_train)
     loss = (x, y) -> crossentropy(m(x), y)
     opt = ADAM()
     evalcb = throttle(() -> @show(accuracy(m, tX, tY)), 5)
-    Flux.@epochs 1 Flux.train!(loss, params(m), train, opt, cb = evalcb)
+    Flux.@epochs 1 Flux.train!(loss, params(m), Iterators.take(train, N), opt, cb = evalcb)
     return accuracy(m, tX, tY)
 end
 
 m = DigitsModel()
-acc = train_model!(m)
+
+# increase N to actually train more than a tiny amount
+acc = train_model!(m; N = 10)
 
 row = DigitsRow(m; epoch=1, accuracy=acc)
 
@@ -101,4 +117,4 @@ m2 = DigitsModel(row)
 testmode!(m2)
 output2 = m2(input)
 
-@test_broken output ≈ output2
+@test output ≈ output2

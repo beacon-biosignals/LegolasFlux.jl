@@ -13,18 +13,20 @@ function test_weights()
     return [reshape(Float32.(1:prod(s)), s) for s in shapes]
 end
 
-@testset begin
+# This simple model should work with both Flux's `params/loadparams!` and
+# our `weights/loadweights!`. The only difference is in layers with `!isempty(other_weights(layer))`.
+@testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in [(weights, loadweights!, params, Flux.loadparams!)]
     my_model = make_my_model()
     Flux.loadparams!(my_model, test_weights())
 
-    model_row = ModelRow(; weights=collect(params(my_model)))
+    model_row = ModelRow(; weights=collect(get_weights(my_model)))
     write_model_row("my_model.model.arrow", model_row)
 
     fresh_model = make_my_model()
 
     model_row = read_model_row("my_model.model.arrow")
     weights = collect(model_row.weights)
-    Flux.loadparams!(fresh_model, weights)
+    load_weights(fresh_model, weights)
 
     @test collect(params(fresh_model)) == weights == test_weights()
 
