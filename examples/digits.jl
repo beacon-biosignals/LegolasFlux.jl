@@ -27,7 +27,7 @@ function DigitsModel(config::DigitsConfig = DigitsConfig())
     chain = Chain(
         Dropout(dropout_rate),
         Conv((3, 3), 1=>32, relu),
-        # BatchNorm(32, relu),
+        BatchNorm(32, relu),
         MaxPool((2,2)),
         Dropout(dropout_rate),
         Conv((3, 3), 32=>16, relu),
