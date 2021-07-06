@@ -43,3 +43,7 @@ end
     tbl = [(; weights = w)]
     @test Arrow.Table(Arrow.tobuffer(tbl)).weights[1] == w
 end
+
+@testset "Example" begin
+    include("../examples/digits.jl")
+end

@@ -47,6 +47,8 @@ model_row.loss # 0.5
 We can make use of the `architecture_version` column to specify a version number for the architectures, in order
 to keep track of for which architectures the weights are valid for.
 
+See [examples/digits.jl](examples/digits.jl) for a larger example.
+
 ## `LegolasFlux.ModelRow`
 
 A `LegolasFlux.ModelRow` is the central object of LegolasFlux. It acts as a Tables.jl-compatible row that can store the weights
@@ -78,4 +80,5 @@ one might name files produced by this row as e.g. `training_run.digits.model.arr
 Note in this example the schema is called `digits.model` instead of just say `digits`, since the package Digits might want to
 create other Legolas schemas as well at some point.
 
-Check out the [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/) repo to see more about how its extensible schema system works.
+Check out the [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/) repo to see more about how its extensible schema system works,
+and the example at [examples/digits.jl](examples/digits.jl).
