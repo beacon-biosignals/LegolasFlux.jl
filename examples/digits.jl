@@ -9,18 +9,27 @@ using Flux: onehotbatch, onecold, crossentropy, throttle
 using Base.Iterators: repeated, partition
 using Legolas, LegolasFlux
 
+# This should store all the information needed
+# to construct the model.
 Base.@kwdef struct DigitsConfig
     seed::Int = 5
     dropout_rate::Float32 = 0f1
 end
 
+# Here's our model object itself, just a `DigitsConfig` and
+# a `chain`. We keep the config around so it's easy to save out
+# later.
 struct DigitsModel
     chain::Chain
     config::DigitsConfig
 end
 
+# Ensure Flux can recurse into our model to find params etc
 Flux.@functor DigitsModel (chain,)
 
+# Construct the actual model from a config object. This is the only
+# constructor that should be used, to ensure the model is created just
+# from the config object alone.
 function DigitsModel(config::DigitsConfig = DigitsConfig())
     dropout_rate = config.dropout_rate
     Random.seed!(config.seed)
@@ -42,18 +51,26 @@ function DigitsModel(config::DigitsConfig = DigitsConfig())
     return DigitsModel(chain, config)
 end
 
+# Our model acts on input just by applying the chain.
 (m::DigitsModel)(x) = m.chain(x)
 
+# Here, we define a schema extension of the `legolas-flux.model` schema.
+# We add our `DigitsConfig` object, as well as the epoch and accuracy.
 const DigitsRow = Legolas.@row("digits.model@1" > "legolas-flux.model@1",
                                config::DigitsConfig,
                                epoch::Union{Missing, Int},
                                accuracy::Union{Missing, Float32})
 
+# Construct a `DigitsRow` from a model by collecting the `weights`.
+# This can then be saved with e.g. `LegolasFlux.write_model_row`.
 function DigitsRow(model::DigitsModel; epoch=missing, accuracy=missing)
     w = collect(weights(model))
     return DigitsRow(; weights=w, model.config, epoch, accuracy)
 end
 
+# Construct a `DigitsModel` from a row satisfying the `DigitsRow` schema,
+# i.e. one with a `weights` and `config::DigitsConfig`.
+# This could be the result of `LegolasFlux.read_model_row`.
 function DigitsModel(row)
     m = DigitsModel(row.config)
     loadweights!(m, collect(row.weights))
@@ -106,6 +123,8 @@ m = DigitsModel()
 # increase N to actually train more than a tiny amount
 acc = train_model!(m; N = 10)
 
+# Let's serialize out the weights into a `DigitsRow`.
+# We could save this here with `write_model_row`.
 row = DigitsRow(m; epoch=1, accuracy=acc)
 
 testmode!(m)
@@ -113,6 +132,8 @@ input = tX[:, :, :, 1:1]
 output = m(input)
 label = tY[:, 1]
 
+# Let's now reconstruct the model from the `row` and check that we get
+# the same outputs.
 m2 = DigitsModel(row)
 testmode!(m2)
 output2 = m2(input)
