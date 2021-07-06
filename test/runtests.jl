@@ -3,6 +3,7 @@ using Test
 using Flux, LegolasFlux
 using LegolasFlux: Weights, FlatArray, ModelRow
 using Arrow
+using Random
 
 function make_my_model()
     return Chain(Dense(1, 10), Dense(10, 10), Dense(10, 1))
