@@ -46,6 +46,36 @@ end
     @test Arrow.Table(Arrow.tobuffer(tbl)).weights[1] == w
 end
 
+@testset "`flux_workarounds`" begin
+    @testset "layer $layer" for layer in [BatchNorm, InstanceNorm, (c) -> GroupNorm(c, 1), c -> identity]
+        mk_model = () -> (Random.seed!(1); Chain(Dense(1, 10), Dense(10, 10), layer(1), Dense(10, 1)))
+        model = mk_model()
+        trainmode!(model)
+        x = reshape([1f0], 1, 1, 1)
+        for i = 1:10
+            x = model(x)
+        end
+        testmode!(model)
+        w = collect(weights(model))
+        p = collect(params(model))
+        output = model(x)
+
+        r1 = mk_model()
+        loadweights!(r1, w)
+        testmode!(r1)
+
+        @test output ≈ r1(x)
+
+        if layer == BatchNorm
+            r2 = mk_model()
+            Flux.loadparams!(r2, p)
+            testmode!(r2)
+
+            @test_broken output ≈ r2(x)
+        end
+    end
+end
+
 @testset "Example" begin
     include("../examples/digits.jl")
 end
