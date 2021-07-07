@@ -4,6 +4,7 @@ using Flux, LegolasFlux
 using LegolasFlux: Weights, FlatArray, ModelRow
 using Arrow
 using Random
+using StableRNGs
 
 function make_my_model()
     return Chain(Dense(1, 10), Dense(10, 10), Dense(10, 1))
@@ -48,7 +49,8 @@ end
 end
 
 @testset "`Weights`" begin
-    v = [rand(Int8, 5), rand(Float32, 5, 5)]
+    rng = StableRNG(245)
+    v = [rand(rng, Int8, 5), rand(rng, Float32, 5, 5)]
     @test Weights(v) isa Weights{Float32}
     @test Weights(FlatArray{Float32}.(v)) isa Weights{Float32}
     @test Weights(FlatArray{Float64}.(v)) isa Weights{Float64}
