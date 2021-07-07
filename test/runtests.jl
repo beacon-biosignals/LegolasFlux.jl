@@ -57,7 +57,7 @@ end
             x = model(x)
         end
         testmode!(model)
-        w = collect(weights(model))
+        w = weights(model)
         p = collect(params(model))
         output = model(x)
 

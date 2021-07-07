@@ -29,16 +29,16 @@ my_model = make_my_model()
 using LegolasFlux
 
 # We can save whatever other columns we'd like to as well as the `weights`.
-model_row = ModelRow(; weights = collect(weights(cpu(my_model))), architecture_version = 1, loss = 0.5)
+model_row = ModelRow(; weights = weights(cpu(my_model)),
+                       architecture_version = 1, loss = 0.5)
 write_model_row("my_model.model.arrow", model_row)
 
 # Great! Later on, we want to re-load our model weights.
 fresh_model = make_my_model()
 
 model_row = read_model_row("my_model.model.arrow")
-loadweights!(fresh_model, collect(model_row.weights))
-# Now our params have been loaded back into `fresh_model`.
-# Note we needed to `collect` the weights before we use them.
+loadweights!(fresh_model, model_row.weights)
+# Now our weights have been loaded back into `fresh_model`.
 
 # We can also check out our other columns:
 model_row.loss # 0.5

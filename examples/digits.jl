@@ -64,8 +64,7 @@ const DigitsRow = Legolas.@row("digits.model@1" > "legolas-flux.model@1",
 # Construct a `DigitsRow` from a model by collecting the `weights`.
 # This can then be saved with e.g. `LegolasFlux.write_model_row`.
 function DigitsRow(model::DigitsModel; epoch=missing, accuracy=missing)
-    w = collect(weights(model))
-    return DigitsRow(; weights=w, model.config, epoch, accuracy)
+    return DigitsRow(; weights=weights(model), model.config, epoch, accuracy)
 end
 
 # Construct a `DigitsModel` from a row satisfying the `DigitsRow` schema,
@@ -73,7 +72,7 @@ end
 # This could be the result of `LegolasFlux.read_model_row`.
 function DigitsModel(row)
     m = DigitsModel(row.config)
-    loadweights!(m, collect(row.weights))
+    loadweights!(m, row.weights)
     return m
 end
 

@@ -34,3 +34,5 @@ function loadweights!(m, xs)
     end
     return nothing
 end
+
+loadweights!(m, xs::Weights) = loadweights!(m, collect(xs))
