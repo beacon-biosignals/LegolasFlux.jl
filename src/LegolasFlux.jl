@@ -1,11 +1,14 @@
 module LegolasFlux
 
 export write_model_row, read_model_row
+export weights, loadweights!
 
 using Legolas
 using Arrow
 using Arrow.ArrowTypes
 using Tables
+using Functors
+using Base: IdSet
 
 const LEGOLAS_SCHEMA = Legolas.Schema("legolas-flux.model@1")
 
