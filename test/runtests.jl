@@ -15,8 +15,8 @@ function test_weights()
 end
 
 # This simple model should work with both Flux's `params/loadparams!` and
-# our `weights/loadweights!`. The only difference is in layers with `!isempty(other_weights(layer))`.
-@testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in [(weights, loadweights!, params, Flux.loadparams!)]
+# our `weights/load_weights!`. The only difference is in layers with `!isempty(other_weights(layer))`.
+@testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in [(weights, load_weights!, params, Flux.loadparams!)]
     my_model = make_my_model()
     load_weights(my_model, test_weights())
 
@@ -40,11 +40,11 @@ end
     my_model = make_my_model()
     w = test_weights()
     w[end] = []
-    @test_throws ArgumentError loadweights!(my_model, w)
+    @test_throws ArgumentError load_weights!(my_model, w)
 
     w = test_weights()
     push!(w, [])
-    @test_throws ArgumentError loadweights!(my_model, w)
+    @test_throws ArgumentError load_weights!(my_model, w)
 end
 
 @testset "`Weights`" begin
@@ -73,7 +73,7 @@ end
         output = model(x)
 
         r1 = mk_model()
-        loadweights!(r1, w)
+        load_weights!(r1, w)
         testmode!(r1)
 
         @test output ≈ r1(x)
@@ -84,7 +84,7 @@ end
             testmode!(r2)
 
             # If this test *fails*, meaning `output ≈ r2(x)`,
-            # then perhaps we should revisit `loadweights!`
+            # then perhaps we should revisit `load_weights!`
             # and could consider switching to `Flux.loadparams`.
             # See https://github.com/beacon-biosignals/LegolasFlux.jl/pull/4
             # for more.

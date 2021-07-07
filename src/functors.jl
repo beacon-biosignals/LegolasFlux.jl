@@ -22,11 +22,11 @@ custom types.
 weights(m) = filter(x -> x isa Array, fcollect2(m))
 
 """
-    loadweights!(m, xs)
+    load_weights!(m, xs)
 
 Load weights `xs` into the model `m`, using [`weights`](@ref).
 """
-function loadweights!(m, xs)
+function load_weights!(m, xs)
     model_weights = weights(m)
     if length(model_weights) != length(xs)
         throw(ArgumentError("Number of weights given ($(length(xs))) does not match number of weights model expects ($(length(model_weights)))"))
@@ -40,4 +40,4 @@ function loadweights!(m, xs)
     return nothing
 end
 
-loadweights!(m, xs::Weights) = loadweights!(m, collect(xs))
+load_weights!(m, xs::Weights) = load_weights!(m, collect(xs))

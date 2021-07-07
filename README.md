@@ -5,7 +5,7 @@
 
 LegolasFlux provides some simple functionality to use [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/)'s
 extensible Arrow schemas as means to serialize Flux models similarly to using Flux's `params` and `loadparams!`
-(instead, we export similar functions `weights` and `loadweights!` which handle layers like `BatchNorm` correctly for this purpose).
+(instead, we export similar functions `weights` and `load_weights!` which handle layers like `BatchNorm` correctly for this purpose).
 
 The aim is to serialize only the numeric weights, *not* the code defining the model. This is a very different approach
 from e.g. BSON.jl, and hopefully much more robust.
@@ -37,7 +37,7 @@ write_model_row("my_model.model.arrow", model_row)
 fresh_model = make_my_model()
 
 model_row = read_model_row("my_model.model.arrow")
-loadweights!(fresh_model, model_row.weights)
+load_weights!(fresh_model, model_row.weights)
 # Now our weights have been loaded back into `fresh_model`.
 
 # We can also check out our other columns:

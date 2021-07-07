@@ -72,7 +72,7 @@ end
 # This could be the result of `LegolasFlux.read_model_row`.
 function DigitsModel(row)
     m = DigitsModel(row.config)
-    loadweights!(m, row.weights)
+    load_weights!(m, row.weights)
     return m
 end
 
