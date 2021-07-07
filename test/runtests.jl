@@ -53,7 +53,7 @@ end
         model = mk_model()
         trainmode!(model)
         x = reshape([1f0], 1, 1, 1)
-        for i = 1:10
+        for i in 1:10
             x = model(x)
         end
         testmode!(model)

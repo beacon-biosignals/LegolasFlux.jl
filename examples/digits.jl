@@ -30,24 +30,24 @@ Flux.@functor DigitsModel (chain,)
 # Construct the actual model from a config object. This is the only
 # constructor that should be used, to ensure the model is created just
 # from the config object alone.
-function DigitsModel(config::DigitsConfig = DigitsConfig())
+function DigitsModel(config::DigitsConfig=DigitsConfig())
     dropout_rate = config.dropout_rate
     Random.seed!(config.seed)
-    chain = Chain(
-        Dropout(dropout_rate),
-        Conv((3, 3), 1=>32, relu),
-        BatchNorm(32, relu),
-        MaxPool((2,2)),
-        Dropout(dropout_rate),
-        Conv((3, 3), 32=>16, relu),
-        Dropout(dropout_rate),
-        MaxPool((2,2)),
-        Dropout(dropout_rate),
-        Conv((3, 3), 16=>10, relu),
-        Dropout(dropout_rate),
-        x -> reshape(x, :, size(x, 4)),
-        Dropout(dropout_rate),
-        Dense(90, 10), softmax)
+    chain = Chain(Dropout(dropout_rate),
+                  Conv((3, 3), 1 => 32, relu),
+                  BatchNorm(32, relu),
+                  MaxPool((2, 2)),
+                  Dropout(dropout_rate),
+                  Conv((3, 3), 32 => 16, relu),
+                  Dropout(dropout_rate),
+                  MaxPool((2, 2)),
+                  Dropout(dropout_rate),
+                  Conv((3, 3), 16 => 10, relu),
+                  Dropout(dropout_rate),
+                  x -> reshape(x, :, size(x, 4)),
+                  Dropout(dropout_rate),
+                  Dense(90, 10),
+                  softmax)
     return DigitsModel(chain, config)
 end
 
@@ -113,14 +113,14 @@ function train_model!(m; N = N_train)
     loss = (x, y) -> crossentropy(m(x), y)
     opt = ADAM()
     evalcb = throttle(() -> @show(accuracy(m, tX, tY)), 5)
-    Flux.@epochs 1 Flux.train!(loss, params(m), Iterators.take(train, N), opt, cb = evalcb)
+    Flux.@epochs 1 Flux.train!(loss, params(m), Iterators.take(train, N), opt; cb=evalcb)
     return accuracy(m, tX, tY)
 end
 
 m = DigitsModel()
 
 # increase N to actually train more than a tiny amount
-acc = train_model!(m; N = 10)
+acc = train_model!(m; N=10)
 
 # Let's serialize out the weights into a `DigitsRow`.
 # We could save this here with `write_model_row`.

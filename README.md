@@ -30,7 +30,7 @@ using LegolasFlux
 
 # We can save whatever other columns we'd like to as well as the `weights`.
 model_row = ModelRow(; weights = weights(cpu(my_model)),
-                       architecture_version = 1, loss = 0.5)
+                     architecture_version=1, loss=0.5)
 write_model_row("my_model.model.arrow", model_row)
 
 # Great! Later on, we want to re-load our model weights.
