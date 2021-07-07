@@ -71,6 +71,10 @@ end
             Flux.loadparams!(r2, p)
             testmode!(r2)
 
+            # If this test *fails*, meaning `output ≈ r2(x)`,
+            # then perhaps Flux#1027 has been fixed and we can
+            # remove `flux_workarounds.jl`.
+            # See https://github.com/beacon-biosignals/LegolasFlux.jl/pull/4#issuecomment-875010030.
             @test_broken output ≈ r2(x)
         end
     end
