@@ -1,5 +1,6 @@
 # Modified version of `fcollect` to use an `IdSet` cache so that
 # distinct arrays whose values happen to be duplicates are each kept.
+# <https://github.com/FluxML/Functors.jl/issues/16>
 function fcollect2(x; output = [], cache = Base.IdSet(), exclude = v -> false)
     x in cache && return output
     if !exclude(x)
