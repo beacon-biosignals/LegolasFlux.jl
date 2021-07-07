@@ -113,6 +113,6 @@ function read_model_row(io_or_path)
     return only(rows)
 end
 
-include("flux_workarounds.jl")
+include("functors.jl")
 
 end # module
