@@ -18,7 +18,7 @@ end
 # our `weights/loadweights!`. The only difference is in layers with `!isempty(other_weights(layer))`.
 @testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in [(weights, loadweights!, params, Flux.loadparams!)]
     my_model = make_my_model()
-    Flux.loadparams!(my_model, test_weights())
+    load_weights(my_model, test_weights())
 
     model_row = ModelRow(; weights=collect(get_weights(my_model)))
     write_model_row("my_model.model.arrow", model_row)
@@ -34,6 +34,17 @@ end
     @test all(x -> eltype(x) == Float32, weights)
 
     rm("my_model.model.arrow")
+end
+
+@testset "Errors" begin
+    my_model = make_my_model()
+    w = test_weights()
+    w[end] = []
+    @test_throws ArgumentError loadweights!(my_model, w)
+
+    w = test_weights()
+    push!(w, [])
+    @test_throws ArgumentError loadweights!(my_model, w)
 end
 
 @testset "`Weights`" begin

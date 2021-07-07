@@ -27,9 +27,13 @@ weights(m) = filter(x -> x isa Array, fcollect2(m))
 Load weights `xs` into the model `m`, using [`weights`](@ref).
 """
 function loadweights!(m, xs)
-    for (i, (p, x)) in enumerate(zip(weights(m), xs))
+    model_weights = weights(m)
+    if length(model_weights) != length(xs)
+        throw(ArgumentError("Number of weights given ($(length(xs))) does not match number of weights model expects ($(length(model_weights)))"))
+    end
+    for (i, (p, x)) in enumerate(zip(model_weights, xs))
         if size(p) != size(x)
-            error("For the $(i)th weight expected param size $(size(p)), got $(size(x))")
+            throw(ArgumentError("For the $(i)th weight expected param size $(size(p)), got $(size(x))"))
         end
         copyto!(p, x)
     end
