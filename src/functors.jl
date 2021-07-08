@@ -12,22 +12,24 @@ function fcollect2(x; output=[], cache=IdSet(), exclude=_ -> false)
 end
 
 """
-    weights(m) -> Vector{Array}
+    fetch_weights(m) -> Vector{Array}
 
 Returns the weights of a model by using `Functors.children` to recurse
 through the model, keeping any arrays found. The `@functor` macro defines
 `Functors.children` automatically so that should be sufficient to support
 custom types.
+
+Note that this function does not copy the results, so that e.g. mutating `fetch_weights(m)[1]` modifies the model.
 """
-weights(m) = filter(x -> x isa Array, fcollect2(m))
+fetch_weights(m) = filter(x -> x isa Array, fcollect2(m))
 
 """
     load_weights!(m, xs)
 
-Load weights `xs` into the model `m`, using [`weights`](@ref).
+Load weights `xs` into the model `m`, using [`fetch_weights`](@ref).
 """
 function load_weights!(m, xs)
-    model_weights = weights(m)
+    model_weights = fetch_weights(m)
     if length(model_weights) != length(xs)
         throw(ArgumentError("Number of weights given ($(length(xs))) does not match number of weights model expects ($(length(model_weights)))"))
     end

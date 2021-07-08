@@ -1,7 +1,7 @@
 module LegolasFlux
 
 export write_model_row, read_model_row
-export weights, load_weights!
+export fetch_weights, load_weights!
 
 using Legolas
 using Arrow
