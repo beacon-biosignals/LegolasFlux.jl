@@ -4,10 +4,11 @@
 [![codecov](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl/branch/main/graph/badge.svg?token=NHYUL22HCC)](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl)
 
 LegolasFlux provides some simple functionality to use [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/)'s
-extensible Arrow schemas as means to serialize Flux models using Flux's `params` and `loadparams!`.
+extensible Arrow schemas as means to serialize Flux models similarly to using Flux's `params` and `loadparams!`
+(instead, we export similar functions `fetch_weights` and `load_weights!` which handle layers like `BatchNorm` correctly for this purpose).
 
 The aim is to serialize only the numeric weights, *not* the code defining the model. This is a very different approach
-from e.g. BSON.jl, and hopefully much more robust.
+from e.g. BSON.jl, and hopefully much more robust. Note that in this package, we use `weights` to refer to the numeric arrays that are modified over the course of training a model; that includes biases as well as means and variances in e.g. BatchNorms (but not e.g. configuration settings).
 
 With this approach, however, if you change the code such that the weights are no longer valid (e.g. add a layer),
 you will not be able to load back the same model.
@@ -28,16 +29,16 @@ my_model = make_my_model()
 using LegolasFlux
 
 # We can save whatever other columns we'd like to as well as the `weights`.
-model_row = ModelRow(; weights = collect(params(cpu(my_model))), architecture_version = 1, loss = 0.5)
+model_row = ModelRow(; weights = fetch_weights(cpu(my_model)),
+                     architecture_version=1, loss=0.5)
 write_model_row("my_model.model.arrow", model_row)
 
 # Great! Later on, we want to re-load our model weights.
 fresh_model = make_my_model()
 
 model_row = read_model_row("my_model.model.arrow")
-Flux.loadparams!(fresh_model, collect(model_row.weights))
-# Now our params have been loaded back into `fresh_model`.
-# Note we needed to `collect` the weights before we use them.
+load_weights!(fresh_model, model_row.weights)
+# Now our weights have been loaded back into `fresh_model`.
 
 # We can also check out our other columns:
 model_row.loss # 0.5
@@ -46,6 +47,8 @@ model_row.loss # 0.5
 
 We can make use of the `architecture_version` column to specify a version number for the architectures, in order
 to keep track of for which architectures the weights are valid for.
+
+See [examples/digits.jl](examples/digits.jl) for a larger example.
 
 ## `LegolasFlux.ModelRow`
 
@@ -78,4 +81,5 @@ one might name files produced by this row as e.g. `training_run.digits.model.arr
 Note in this example the schema is called `digits.model` instead of just say `digits`, since the package Digits might want to
 create other Legolas schemas as well at some point.
 
-Check out the [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/) repo to see more about how its extensible schema system works.
+Check out the [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/) repo to see more about how its extensible schema system works,
+and the example at [examples/digits.jl](examples/digits.jl).

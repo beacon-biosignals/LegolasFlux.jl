@@ -1,11 +1,14 @@
 module LegolasFlux
 
 export write_model_row, read_model_row
+export fetch_weights, load_weights!
 
 using Legolas
 using Arrow
 using Arrow.ArrowTypes
 using Tables
+using Functors
+using Base: IdSet
 
 const LEGOLAS_SCHEMA = Legolas.Schema("legolas-flux.model@1")
 
@@ -110,5 +113,6 @@ function read_model_row(io_or_path)
     return only(rows)
 end
 
+include("functors.jl")
 
 end # module
