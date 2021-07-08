@@ -8,7 +8,7 @@ extensible Arrow schemas as means to serialize Flux models similarly to using Fl
 (instead, we export similar functions `fetch_weights` and `load_weights!` which handle layers like `BatchNorm` correctly for this purpose).
 
 The aim is to serialize only the numeric weights, *not* the code defining the model. This is a very different approach
-from e.g. BSON.jl, and hopefully much more robust.
+from e.g. BSON.jl, and hopefully much more robust. Note that in this package, we use `weights` to refer to the numeric arrays that are modified over the course of training a model; that includes biases as well as means and variances in e.g. BatchNorms (but not e.g. configuration settings).
 
 With this approach, however, if you change the code such that the weights are no longer valid (e.g. add a layer),
 you will not be able to load back the same model.
