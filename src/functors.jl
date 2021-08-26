@@ -25,7 +25,7 @@ Note that this function does not copy the results, so that e.g. mutating
 fetch_weights(m) = filter(numeric_array, fcollect2(m))
 numeric_array(x) = false
 numeric_array(x::Array{<:Number}) = true
-numeric_array(x::Array) = all(numeric_array, x)
+numeric_array(x::Array) = all(x -> x isa Number || numeric_array(x), x)
 
 """
     load_weights!(m, xs)
