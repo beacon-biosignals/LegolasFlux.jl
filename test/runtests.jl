@@ -37,6 +37,24 @@ end
     rm("my_model.model.arrow")
 end
 
+struct MyArrayModel
+    dense_array::Array
+end
+Flux.@functor MyArrayModel
+
+@testset "Non-numeric arrays ignored" begin
+    m = MyArrayModel([Dense(1, 10), Dense(10, 10), Dense(10, 1)])
+    weights = fetch_weights(m)
+    @test length(weights) == 6
+
+    model_row = ModelRow(; weights=collect(weights))
+    write_model_row("my_model.model.arrow", model_row)
+
+    new_model_row = read_model_row("my_model.model.arrow")
+    new_weights = collect(new_model_row.weights)
+    @test new_weights == weights
+end
+
 @testset "Errors" begin
     my_model = make_my_model()
     w = test_weights()
