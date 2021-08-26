@@ -15,13 +15,17 @@ end
     fetch_weights(m) -> Vector{Array}
 
 Returns the weights of a model by using `Functors.children` to recurse
-through the model, keeping any arrays found. The `@functor` macro defines
+through the model, keeping any numeric arrays found. The `@functor` macro defines
 `Functors.children` automatically so that should be sufficient to support
 custom types.
 
-Note that this function does not copy the results, so that e.g. mutating `fetch_weights(m)[1]` modifies the model.
+Note that this function does not copy the results, so that e.g. mutating
+`fetch_weights(m)[1]` modifies the model.
 """
-fetch_weights(m) = filter(x -> x isa Array, fcollect2(m))
+fetch_weights(m) = filter(numeric_array, fcollect2(m))
+numeric_array(x) = false
+numeric_array(x::Array{<:Number}) = true
+numeric_array(x::Array) = all(numeric_array, x)
 
 """
     load_weights!(m, xs)
