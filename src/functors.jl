@@ -22,10 +22,10 @@ custom types.
 Note that this function does not copy the results, so that e.g. mutating
 `fetch_weights(m)[1]` modifies the model.
 """
-fetch_weights(m) = filter(numeric_array, fcollect2(m))
-numeric_array(x) = false
-numeric_array(x::Array{<:Number}) = true
-numeric_array(x::Array) = all(x -> x isa Number || numeric_array(x), x)
+fetch_weights(m) = filter(is_numeric_array, fcollect2(m))
+is_numeric_array(x) = false
+is_numeric_array(x::Array{<:Number}) = true
+is_numeric_array(x::Array) = all(x -> x isa Number || is_numeric_array(x), x)
 
 """
     load_weights!(m, xs)
