@@ -1,16 +1,3 @@
-# Modified version of `fcollect` to use an `IdSet` cache so that
-# distinct arrays whose values happen to be duplicates are each kept.
-# <https://github.com/FluxML/Functors.jl/issues/16>
-function fcollect2(x; output=[], cache=IdSet(), exclude=_ -> false)
-    x in cache && return output
-    if !exclude(x)
-        push!(cache, x)
-        push!(output, x)
-        foreach(y -> fcollect2(y; cache=cache, output=output, exclude=exclude), Functors.children(x))
-    end
-    return output
-end
-
 """
     fetch_weights(m) -> Vector{Array}
 
@@ -22,7 +9,7 @@ custom types.
 Note that this function does not copy the results, so that e.g. mutating
 `fetch_weights(m)[1]` modifies the model.
 """
-fetch_weights(m) = filter(is_numeric_array, fcollect2(m))
+fetch_weights(m) = filter(is_numeric_array, fcollect(m))
 is_numeric_array(x) = false
 is_numeric_array(x::Array{<:Number}) = true
 is_numeric_array(x::Array) = all(x -> x isa Number || is_numeric_array(x), x)
