@@ -16,7 +16,7 @@ const LEGOLAS_SCHEMA = Legolas.Schema("legolas-flux.model@1")
 ##### `FlatArray`
 #####
 
-struct FlatArray{T <: Number}
+struct FlatArray{T <: Union{Number, Missing}}
     vec::Vector{T}
     size::Vector{Int}
 end
@@ -63,6 +63,11 @@ end
 function Weights(v::AbstractVector)
     T = foldl(promote_type, (eltype(x) for x in v))
     return Weights(FlatArray{T}.(v))
+end
+
+# for `missing` weights
+function Weights(m::Missing)
+    return Weights{Missing}([FlatArray{Missing}([])])
 end
 
 # for deserializing from Arrow

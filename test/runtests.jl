@@ -21,6 +21,10 @@ end
     my_model = make_my_model()
     load_weights(my_model, test_weights())
 
+    # quick test with `missing` weights.
+    model_row = ModelRow(; weights=missing)
+    write_model_row("my_model.model.arrow", model_row)
+
     model_row = ModelRow(; weights=collect(get_weights(my_model)))
     write_model_row("my_model.model.arrow", model_row)
 
