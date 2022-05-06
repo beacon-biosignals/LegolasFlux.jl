@@ -24,6 +24,12 @@ end
     model_row = ModelRow(; weights=collect(get_weights(my_model)))
     write_model_row("my_model.model.arrow", model_row)
 
+    # quick test with `missing` weights.
+    model_row = ModelRow(; weights=missing)
+    write_model_row("my_model.model.arrow", model_row)
+    rt = read_model_row("my_model.model.arrow")
+    @test isequal(model_row, rt)
+        
     fresh_model = make_my_model()
 
     model_row = read_model_row("my_model.model.arrow")
