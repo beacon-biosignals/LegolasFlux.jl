@@ -67,7 +67,7 @@ end
 
 # for `missing` weights
 function Weights(m::Missing)
-    return Weights{Missing}([FlatArray{Missing}([])])
+    return Weights{Missing}([FlatArray{Missing}([missing])])
 end
 
 # for deserializing from Arrow
