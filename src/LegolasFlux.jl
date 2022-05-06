@@ -83,7 +83,7 @@ ArrowTypes.JuliaType(::Val{WEIGHTS_ARROW_NAME}) = Weights
 #####
 
 const ModelRow = Legolas.@row("legolas-flux.model@1",
-                              weights::Weights = Weights(weights),
+                              weights::Union{Missing, Weights} = Weights(weights),
                               architecture_version::Union{Missing,Int})
 #####
 ##### Utilities
