@@ -18,18 +18,20 @@ end
 # This simple model should work with both Flux's `params/loadparams!` and
 # our `weights/load_weights!`. The only difference is in layers with `!isempty(other_weights(layer))`.
 @testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in [(fetch_weights, load_weights!, params, Flux.loadparams!)]
-    my_model = make_my_model()
-    load_weights(my_model, test_weights())
-
-    model_row = ModelRow(; weights=collect(get_weights(my_model)))
-    write_model_row("my_model.model.arrow", model_row)
 
     # quick test with `missing` weights.
     model_row = ModelRow(; weights=missing)
     write_model_row("my_model.model.arrow", model_row)
     rt = read_model_row("my_model.model.arrow")
     @test isequal(model_row, rt)
-        
+
+    my_model = make_my_model()
+    load_weights(my_model, test_weights())
+
+    model_row = ModelRow(; weights=collect(get_weights(my_model)))
+    write_model_row("my_model.model.arrow", model_row)
+
+
     fresh_model = make_my_model()
 
     model_row = read_model_row("my_model.model.arrow")
@@ -80,7 +82,7 @@ end
     @test Weights(FlatArray{Float64}.(v)) isa Weights{Float64}
 
     w = Weights(v)
-    tbl = [(; weights = w)]
+    tbl = [(; weights=w)]
     @test Arrow.Table(Arrow.tobuffer(tbl)).weights[1] == w
 end
 
@@ -89,7 +91,7 @@ end
         mk_model = () -> (Random.seed!(1); Chain(Dense(1, 10), Dense(10, 10), layer(1), Dense(10, 1)))
         model = mk_model()
         trainmode!(model)
-        x = reshape([1f0], 1, 1, 1)
+        x = reshape([1.0f0], 1, 1, 1)
         for i in 1:10
             x = model(x)
         end
