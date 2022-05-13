@@ -8,6 +8,8 @@ using StableRNGs
 using Flux: onehotbatch, onecold, crossentropy, throttle
 using Base.Iterators: repeated, partition
 using Legolas, LegolasFlux
+using Zygote
+using Optimisers: Optimisers
 
 # This should store all the information needed
 # to construct the model.
@@ -110,17 +112,46 @@ function accuracy(m, x, y)
 end
 
 function train_model!(m; N = N_train)
-    loss = (x, y) -> crossentropy(m(x), y)
-    opt = ADAM()
+    state = Optimisers.setup(Optimisers.ADAM(), m)  # just once
     evalcb = throttle(() -> @show(accuracy(m, tX, tY)), 5)
-    Flux.@epochs 1 Flux.train!(loss, params(m), Iterators.take(train, N), opt; cb=evalcb)
-    return accuracy(m, tX, tY)
+    for d in Iterators.take(train, N)
+        m̄, _ = gradient(m, d[1]) do m, x
+            crossentropy(m(x), d[2])
+        end
+        state, m = Optimisers.update(state, m, m̄);
+        evalcb()
+    end
+    return accuracy(m, tX, tY), state
 end
 
 m = DigitsModel()
 
 # increase N to actually train more than a tiny amount
-acc = train_model!(m; N=10)
+acc, state = train_model!(m; N=10)
+
+using Arrow, Test
+
+macro serialize_as_record(T)
+    name = :(Symbol("JuliaLang.", @__MODULE__, ".", string(parentmodule($T), '.', nameof($T))))
+    return quote
+        Arrow.ArrowTypes.arrowname(::Type{$T}) = $name
+        Arrow.ArrowTypes.ArrowType(::Type{$T}) = fieldtypes($T)
+        Arrow.ArrowTypes.toarrow(obj::$T) = ntuple(i -> getfield(obj, i), fieldcount($T))
+        Arrow.ArrowTypes.JuliaType(::Val{$name}, ::Any) = $T
+        Arrow.ArrowTypes.fromarrow(::Type{$T}, args...) = $T(args...)
+    end
+end
+
+@serialize_as_record Optimisers.ADAM
+@serialize_as_record Optimisers.Leaf
+
+Arrow.tobuffer( [(; obj=state)]; maxdepth=50)
+state2 = Arrow.Table(Arrow.tobuffer( [(; obj=state)]; maxdepth=50)).obj[1]
+
+
+
+
+LegolasFlux.load_weights!(state2, state)
 
 # Let's serialize out the weights into a `DigitsRow`.
 # We could save this here with `write_model_row`.
