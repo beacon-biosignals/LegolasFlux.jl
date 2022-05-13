@@ -129,6 +129,9 @@ m = DigitsModel()
 # increase N to actually train more than a tiny amount
 acc, state = train_model!(m; N=10)
 
+##
+#
+
 using Arrow, Test
 
 macro serialize_as_record(T)
@@ -148,10 +151,8 @@ end
 Arrow.tobuffer( [(; obj=state)]; maxdepth=50)
 state2 = Arrow.Table(Arrow.tobuffer( [(; obj=state)]; maxdepth=50)).obj[1]
 
-
-
-
-LegolasFlux.load_weights!(state2, state)
+#
+##
 
 # Let's serialize out the weights into a `DigitsRow`.
 # We could save this here with `write_model_row`.
