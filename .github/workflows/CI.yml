@@ -18,8 +18,8 @@ on:
       - 'Project.toml'
 jobs:
   test:
-    name: Julia ${{ matrix.version }} - Legolas ${{ matrix.legolas-version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
-    runs-on: ${{ matrix.os }}
+    name: Julia ${{ matrix.version }} - Legolas ${{ matrix.legolas-version }} - Flux ${{ matrix.flux-version }} - ${{ github.event_name }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -31,10 +31,6 @@ jobs:
           - '0.13'
         version:
           - '1' # current release
-        os:
-          - ubuntu-latest
-        arch:
-          - x64
         include:
           - version: '1.5' # earliest supported version
             legolas-version: '0.2'
@@ -46,7 +42,7 @@ jobs:
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
+          arch: x64
       - name: "Install Legolas and Flux"
         shell: julia --color=yes --project=. {0}
         run: |
