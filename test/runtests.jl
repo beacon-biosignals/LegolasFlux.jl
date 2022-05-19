@@ -101,7 +101,6 @@ end
         testmode!(model)
         w = fetch_weights(model)
 
-        # This simple model should work with both Flux's `params` and `fetch_weights`
         p = collect(params(model))
         output = model(x)
 
