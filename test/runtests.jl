@@ -6,6 +6,9 @@ using Flux: params
 using Arrow
 using Random
 using StableRNGs
+using TOML
+
+const FLUX_VERSION = VersionNumber(TOML.parsefile(joinpath(pkgdir(Flux), "Project.toml"))["version"])
 
 function make_my_model()
     return Chain(Dense(1, 10), Dense(10, 10), Dense(10, 1))
@@ -16,9 +19,16 @@ function test_weights()
     return [reshape(Float32.(1:prod(s)), s) for s in shapes]
 end
 
-# This simple model should work with both Flux's `params/loadparams!` and
-# our `weights/load_weights!`. The only difference is in layers with `!isempty(other_weights(layer))`.
-@testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in [(fetch_weights, load_weights!, params, Flux.loadmodel!)]
+fetch_load_pairs = Any[(fetch_weights, load_weights!)]
+if FLUX_VERSION < v"0.13"
+    # This simple model should work with both Flux's `params/loadparams!` and
+    # our `weights/load_weights!`. The only difference is in layers with `!isempty(other_weights(layer))`.
+    push!(fetch_load_pairs, (params, Flux.loadparams!))
+else
+    push!(fetch_load_pairs, (params, Flux.loadmodel!))
+end
+
+@testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in fetch_load_pairs
 
     # quick test with `missing` weights.
     model_row = ModelRow(; weights=missing)
