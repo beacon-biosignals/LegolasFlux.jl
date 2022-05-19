@@ -2,6 +2,7 @@ using LegolasFlux
 using Test
 using Flux, LegolasFlux
 using LegolasFlux: Weights, FlatArray, ModelRow
+using Flux: params
 using Arrow
 using Random
 using StableRNGs
@@ -17,7 +18,7 @@ end
 
 # This simple model should work with both Flux's `params/loadparams!` and
 # our `weights/load_weights!`. The only difference is in layers with `!isempty(other_weights(layer))`.
-@testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in [(fetch_weights, load_weights!, params, Flux.loadparams!)]
+@testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in [(fetch_weights, load_weights!, params, Flux.loadmodel!)]
 
     # quick test with `missing` weights.
     model_row = ModelRow(; weights=missing)
