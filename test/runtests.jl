@@ -2,6 +2,7 @@ using LegolasFlux
 using Test
 using Flux, LegolasFlux
 using LegolasFlux: Weights, FlatArray, ModelRow
+using Flux: params
 using Arrow
 using Random
 using StableRNGs
@@ -15,34 +16,32 @@ function test_weights()
     return [reshape(Float32.(1:prod(s)), s) for s in shapes]
 end
 
-# This simple model should work with both Flux's `params/loadparams!` and
-# our `weights/load_weights!`. The only difference is in layers with `!isempty(other_weights(layer))`.
-@testset "using ($get_weights, $load_weights)" for (get_weights, load_weights) in [(fetch_weights, load_weights!, params, Flux.loadparams!)]
+@testset "Roundtripping simple model" begin
+    try
+        # quick test with `missing` weights.
+        model_row = ModelRow(; weights=missing)
+        write_model_row("my_model.model.arrow", model_row)
+        rt = read_model_row("my_model.model.arrow")
+        @test isequal(model_row, rt)
 
-    # quick test with `missing` weights.
-    model_row = ModelRow(; weights=missing)
-    write_model_row("my_model.model.arrow", model_row)
-    rt = read_model_row("my_model.model.arrow")
-    @test isequal(model_row, rt)
+        my_model = make_my_model()
+        load_weights!(my_model, test_weights())
 
-    my_model = make_my_model()
-    load_weights(my_model, test_weights())
+        model_row = ModelRow(; weights=collect(fetch_weights(my_model)))
+        write_model_row("my_model.model.arrow", model_row)
 
-    model_row = ModelRow(; weights=collect(get_weights(my_model)))
-    write_model_row("my_model.model.arrow", model_row)
+        fresh_model = make_my_model()
 
+        model_row = read_model_row("my_model.model.arrow")
+        weights = collect(model_row.weights)
+        load_weights!(fresh_model, weights)
 
-    fresh_model = make_my_model()
+        @test collect(params(fresh_model)) == weights == test_weights()
 
-    model_row = read_model_row("my_model.model.arrow")
-    weights = collect(model_row.weights)
-    load_weights(fresh_model, weights)
-
-    @test collect(params(fresh_model)) == weights == test_weights()
-
-    @test all(x -> eltype(x) == Float32, weights)
-
-    rm("my_model.model.arrow")
+        @test all(x -> eltype(x) == Float32, weights)
+    finally
+        rm("my_model.model.arrow")
+    end
 end
 
 struct MyArrayModel
@@ -51,16 +50,20 @@ end
 Flux.@functor MyArrayModel
 
 @testset "Non-numeric arrays ignored" begin
-    m = MyArrayModel([Dense(1, 10), Dense(10, 10), Dense(10, 1)])
-    weights = fetch_weights(m)
-    @test length(weights) == 6
+    try
+        m = MyArrayModel([Dense(1, 10), Dense(10, 10), Dense(10, 1)])
+        weights = fetch_weights(m)
+        @test length(weights) == 6
 
-    model_row = ModelRow(; weights=collect(weights))
-    write_model_row("my_model.model.arrow", model_row)
+        model_row = ModelRow(; weights=collect(weights))
+        write_model_row("my_model.model.arrow", model_row)
 
-    new_model_row = read_model_row("my_model.model.arrow")
-    new_weights = collect(new_model_row.weights)
-    @test new_weights == weights
+        new_model_row = read_model_row("my_model.model.arrow")
+        new_weights = collect(new_model_row.weights)
+        @test new_weights == weights
+    finally
+        rm("my_model.model.arrow")
+    end
 end
 
 @testset "Errors" begin
@@ -97,6 +100,7 @@ end
         end
         testmode!(model)
         w = fetch_weights(model)
+
         p = collect(params(model))
         output = model(x)
 

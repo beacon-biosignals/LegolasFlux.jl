@@ -113,7 +113,7 @@ function train_model!(m; N = N_train)
     loss = (x, y) -> crossentropy(m(x), y)
     opt = ADAM()
     evalcb = throttle(() -> @show(accuracy(m, tX, tY)), 5)
-    Flux.@epochs 1 Flux.train!(loss, params(m), Iterators.take(train, N), opt; cb=evalcb)
+    Flux.@epochs 1 Flux.train!(loss, Flux.params(m), Iterators.take(train, N), opt; cb=evalcb)
     return accuracy(m, tX, tY)
 end
 
