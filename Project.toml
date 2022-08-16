@@ -1,7 +1,7 @@
 name = "LegolasFlux"
 uuid = "eb5f792d-d1b1-4535-bae3-d5649ec7daa4"
 authors = ["Beacon Biosignals, Inc."]
-version = "0.1.6"
+version = "0.1.7"
 
 [deps]
 Arrow = "69666777-d1a9-59fb-9406-91d4454c9d45"
