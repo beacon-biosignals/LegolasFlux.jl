@@ -56,10 +56,15 @@ end
 
 # Here, we define a schema extension of the `legolas-flux.model` schema.
 # We add our `DigitsConfig` object, as well as the epoch and accuracy.
-const DigitsRow = Legolas.@row("digits.model@1" > "legolas-flux.model@1",
-                               config::DigitsConfig,
-                               epoch::Union{Missing, Int},
-                               accuracy::Union{Missing, Float32})
+@schema "digits.model" DigitsModel
+
+@version DigitsModelV1 > LegolasFlux.ModelV1 begin
+    config::DigitsConfig
+    epoch::Union{Missing, Int}
+    accuracy::Union{Missing, Float32}
+end
+
+const DigitsRow = DigitsModelV1
 
 # Construct a `DigitsRow` from a model by collecting the weights.
 # This can then be saved with e.g. `LegolasFlux.write_model_row`.

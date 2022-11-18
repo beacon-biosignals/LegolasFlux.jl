@@ -4,13 +4,12 @@ export write_model_row, read_model_row
 export fetch_weights, load_weights!
 
 using Legolas
+using Legolas: @schema, @version
 using Arrow
 using Arrow.ArrowTypes
 using Tables
 using Functors
 using Base: IdSet
-
-const LEGOLAS_SCHEMA = Legolas.Schema("legolas-flux.model@1")
 
 #####
 ##### `FlatArray`
@@ -79,12 +78,19 @@ ArrowTypes.arrowname(::Type{<:Weights}) = WEIGHTS_ARROW_NAME
 ArrowTypes.JuliaType(::Val{WEIGHTS_ARROW_NAME}) = Weights
 
 #####
-##### `ModelRow`
+##### `ModelV1`
 #####
 
-const ModelRow = Legolas.@row("legolas-flux.model@1",
-                              weights::Union{Missing,Weights} = ismissing(weights) ? missing : Weights(weights),
-                              architecture_version::Union{Missing,Int})
+@schema "legolas-flux.model" Model
+
+@version ModelV1 begin
+    weights::(<:Union{Missing,Weights}) = ismissing(weights) ? missing : Weights(weights)
+    architecture_version::Union{Missing,Int}
+end
+
+# Backwards compat
+const ModelRow = ModelV1
+
 #####
 ##### Utilities
 #####
@@ -97,19 +103,19 @@ with a single row. `kwargs` are forwarded to an internal
 invocation of `Arrow.write`.
 """
 function write_model_row(io_or_path, row; kwargs...)
-    return Legolas.write(io_or_path, [row], LEGOLAS_SCHEMA; validate=true, kwargs...)
+    return Legolas.write(io_or_path, [row], ModelV1SchemaVersion(); validate=true, kwargs...)
 end
 
 """
-    read_model_row(io_or_path) -> ModelRow
+    read_model_row(io_or_path) -> ModelV1
 
 A light wrapper around `Legolas.read` to retrieve
-a `ModelRow` from a table with a single row, such
+a `ModelV1` from a table with a single row, such
 as the output of [`write_model_row`](@ref)`.
 """
 function read_model_row(io_or_path)
     table = Legolas.read(io_or_path; validate=true)
-    rows = ModelRow.(Tables.rows(table))
+    rows = ModelV1.(Tables.rows(table))
     return only(rows)
 end
 

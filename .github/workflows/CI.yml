@@ -18,14 +18,11 @@ on:
       - 'Project.toml'
 jobs:
   test:
-    name: Julia ${{ matrix.version }} - Legolas ${{ matrix.legolas-version }} - Flux ${{ matrix.flux-version }} - ${{ github.event_name }}
+    name: Julia ${{ matrix.version }} - Flux ${{ matrix.flux-version }} - ${{ github.event_name }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        legolas-version:
-          - '0.2'
-          - '0.3'
         flux-version:
           - '0.12'
           - '0.13'
@@ -43,12 +40,11 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: x64
-      - name: "Install Legolas and Flux"
+      - name: "Install Flux"
         shell: julia --color=yes --project=. {0}
         run: |
           using Pkg
-          Pkg.add([Pkg.PackageSpec(; name="Legolas", version="${{ matrix.legolas-version }}"),
-                   Pkg.PackageSpec(; name="Flux", version="${{ matrix.flux-version }}")])
+          Pkg.add([Pkg.PackageSpec(; name="Flux", version="${{ matrix.flux-version }}")])
       - uses: actions/cache@v2
         with:
           path: ~/.julia/artifacts

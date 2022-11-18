@@ -29,8 +29,8 @@ my_model = make_my_model()
 using LegolasFlux
 
 # We can save whatever other columns we'd like to as well as the `weights`.
-model_row = ModelRow(; weights = fetch_weights(cpu(my_model)),
-                     architecture_version=1, loss=0.5)
+model_row = LegolasFlux.ModelV1(; weights = fetch_weights(cpu(my_model)),
+                                architecture_version=1, loss=0.5)
 write_model_row("my_model.model.arrow", model_row)
 
 # Great! Later on, we want to re-load our model weights.
@@ -50,13 +50,13 @@ to keep track of for which architectures the weights are valid for.
 
 See [examples/digits.jl](examples/digits.jl) for a larger example.
 
-## `LegolasFlux.ModelRow`
+## `LegolasFlux.ModelV1`
 
-A `LegolasFlux.ModelRow` is the central object of LegolasFlux. It acts as a Tables.jl-compatible row that can store the weights
+A `LegolasFlux.ModelV1` is the central object of LegolasFlux. It acts as a Tables.jl-compatible row that can store the weights
 of a Flux model in the `weights` column, optionally an `architecture_version` (defaults to `missing`), and any
 other columns the user desires.
 
-`ModelRow` is not exported because downstream models likely want to define their own rows which extend the schema provided by LegolasFlux
+`ModelV1` is not exported because downstream models likely want to define their own rows which extend the schema provided by LegolasFlux
 that might end up being called something similar. See the next section for more on extensibility.
 
 ## Extensibility
@@ -75,7 +75,7 @@ const DigitsRow = Legolas.@row("digits.model@1" > "legolas-flux.model@1",
                          commit_sha::Union{Missing, String})
 ```
 
-Now I can use a `DigitsRow` much like LegolasFlux's `ModelRow`. It has the same required `weights` column and optional `architecture_version` column, as well as the additional `epoch`, `accuracy`, and `commit_sha` columns. As a naming convention,
+Now I can use a `DigitsRow` much like LegolasFlux's `ModelV1`. It has the same required `weights` column and optional `architecture_version` column, as well as the additional `epoch`, `accuracy`, and `commit_sha` columns. As a naming convention,
 one might name files produced by this row as e.g. `training_run.digits.model.arrow`.
 
 Note in this example the schema is called `digits.model` instead of just say `digits`, since the package Digits might want to
