@@ -23,18 +23,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        legolas-version:
-          - '0.2'
-          - '0.3'
         flux-version:
           - '0.12'
           - '0.13'
         version:
           - '1' # current release
-        include:
-          - version: '1.5' # earliest supported version
-            legolas-version: '0.2'
-            flux-version: '0.12'
+          - '1.6' # earliest supported version
     steps:
       - uses: actions/checkout@v2
         with:
@@ -43,12 +37,11 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: x64
-      - name: "Install Legolas and Flux"
+      - name: "Install Flux"
         shell: julia --color=yes --project=. {0}
         run: |
           using Pkg
-          Pkg.add([Pkg.PackageSpec(; name="Legolas", version="${{ matrix.legolas-version }}"),
-                   Pkg.PackageSpec(; name="Flux", version="${{ matrix.flux-version }}")])
+          Pkg.add([Pkg.PackageSpec(; name="Flux", version="${{ matrix.flux-version }}")])
       - uses: actions/cache@v2
         with:
           path: ~/.julia/artifacts
