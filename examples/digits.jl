@@ -14,7 +14,7 @@ using Tables
 # to construct the model.
 const DigitsConfig = Legolas.@row("digits-config@1",
                                   seed::Int = 5,
-                                  dropout_rate::Float32 = 0f1,)
+                                  dropout_rate::Float32 = 0.0f1,)
 
 # Here's our model object itself, just a `DigitsConfig` and
 # a `chain`. We keep the config around so it's easy to save out
@@ -58,8 +58,8 @@ end
 # We add our `DigitsConfig` object, as well as the epoch and accuracy.
 const DigitsRow = Legolas.@row("digits.model@1" > "legolas-flux.model@1",
                                config::DigitsConfig,
-                               epoch::Union{Missing, Int},
-                               accuracy::Union{Missing, Float32})
+                               epoch::Union{Missing,Int},
+                               accuracy::Union{Missing,Float32})
 
 # Construct a `DigitsRow` from a model by collecting the weights.
 # This can then be saved with e.g. `LegolasFlux.write_model_row`.
@@ -75,7 +75,6 @@ function DigitsModel(row)
     load_weights!(m, row.weights)
     return m
 end
-
 
 # Increase to get more training/test data
 N_train = 1_000
@@ -109,11 +108,12 @@ function accuracy(m, x, y)
     return val
 end
 
-function train_model!(m; N = N_train)
+function train_model!(m; N=N_train)
     loss = (x, y) -> crossentropy(m(x), y)
     opt = ADAM()
     evalcb = throttle(() -> @show(accuracy(m, tX, tY)), 5)
-    Flux.@epochs 1 Flux.train!(loss, Flux.params(m), Iterators.take(train, N), opt; cb=evalcb)
+    Flux.@epochs 1 Flux.train!(loss, Flux.params(m), Iterators.take(train, N), opt;
+                               cb=evalcb)
     return accuracy(m, tX, tY)
 end
 
@@ -156,4 +156,5 @@ output3 = roundtripped_model(input)
 # Here, we've hardcoded the results at the time of serialization.
 # This lets us check that the model we've saved gives the same answers now as it did then.
 # It is OK to update this test w/ a new reference if the answers are *supposed* to change for some reason. Just make sure that is the case.
-@test output3 ≈ Float32[0.09915658; 0.100575574; 0.101189725; 0.10078623; 0.09939819; 0.099650174; 0.1013182; 0.09952383; 0.0991391; 0.09926238;;]
+@test output3 ≈
+      Float32[0.09915658; 0.100575574; 0.101189725; 0.10078623; 0.09939819; 0.099650174; 0.1013182; 0.09952383; 0.0991391; 0.09926238;;]
