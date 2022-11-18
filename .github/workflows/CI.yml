@@ -29,8 +29,7 @@ jobs:
         version:
           - '1' # current release
         include:
-          - version: '1.5' # earliest supported version
-            legolas-version: '0.2'
+          - version: '1.6' # earliest supported version
             flux-version: '0.12'
     steps:
       - uses: actions/checkout@v2
