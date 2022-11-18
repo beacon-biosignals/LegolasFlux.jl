@@ -57,7 +57,7 @@ end
 # Here, we define a schema extension of the `legolas-flux.model` schema.
 # We add our `DigitsConfig` object, as well as the epoch and accuracy.
 const DigitsRow = Legolas.@row("digits.model@1" > "legolas-flux.model@1",
-                               config::DigitsConfig,
+                               config::DigitsConfig = DigitsConfig(config),
                                epoch::Union{Missing,Int},
                                accuracy::Union{Missing,Float32})
 
