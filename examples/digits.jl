@@ -56,23 +56,21 @@ end
 
 # Here, we define a schema extension of the `legolas-flux.model` schema.
 # We add our `DigitsConfig` object, as well as the epoch and accuracy.
-@schema "digits.model" DigitsModel
+@schema "digits.model" DigitsRow
 
-@version DigitsModelV1 > LegolasFlux.ModelV1 begin
+@version DigitsRowV1 > LegolasFlux.ModelV1 begin
     config::DigitsConfig
     epoch::Union{Missing, Int}
     accuracy::Union{Missing, Float32}
 end
 
-const DigitsRow = DigitsModelV1
-
-# Construct a `DigitsRow` from a model by collecting the weights.
+# Construct a `DigitsRowV1` from a model by collecting the weights.
 # This can then be saved with e.g. `LegolasFlux.write_model_row`.
-function DigitsRow(model::DigitsModel; epoch=missing, accuracy=missing)
-    return DigitsRow(; weights=fetch_weights(model), model.config, epoch, accuracy)
+function DigitsRowV1(model::DigitsModel; epoch=missing, accuracy=missing)
+    return DigitsRowV1(; weights=fetch_weights(model), model.config, epoch, accuracy)
 end
 
-# Construct a `DigitsModel` from a row satisfying the `DigitsRow` schema,
+# Construct a `DigitsModel` from a row satisfying the `DigitsRowV1` schema,
 # i.e. one with a `weights` and `config::DigitsConfig`.
 # This could be the result of `LegolasFlux.read_model_row`.
 function DigitsModel(row)
@@ -127,9 +125,9 @@ m = DigitsModel()
 # increase N to actually train more than a tiny amount
 acc = train_model!(m; N=10)
 
-# Let's serialize out the weights into a `DigitsRow`.
+# Let's serialize out the weights into a `DigitsRowV1`.
 # We could save this here with `write_model_row`.
-row = DigitsRow(m; epoch=1, accuracy=acc)
+row = DigitsRowV1(m; epoch=1, accuracy=acc)
 
 testmode!(m)
 input = tX[:, :, :, 1:1]
