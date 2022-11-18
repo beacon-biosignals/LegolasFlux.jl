@@ -26,6 +26,7 @@ jobs:
         legolas-version:
           - '0.2'
           - '0.3'
+          - '0.4'
         flux-version:
           - '0.12'
           - '0.13'
