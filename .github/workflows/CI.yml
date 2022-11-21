@@ -28,9 +28,7 @@ jobs:
           - '0.13'
         version:
           - '1' # current release
-        include:
-          - version: '1.6' # earliest supported version
-            flux-version: '0.12'
+          - '1.6' # earliest supported version
     steps:
       - uses: actions/checkout@v2
         with:
