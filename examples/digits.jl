@@ -61,6 +61,8 @@ end
 # We add our `DigitsConfig` object, as well as the epoch and accuracy.
 @schema "digits.model" DigitsRow
 
+# construct a `DigitsConfigV1` with support for older Legolas serialization formats
+# to support backwards compatibility
 compat_config(config::DigitsConfigV1) = config
 function compat_config(config::NamedTuple)
     # This is how these deserialize from Legolas v0.4
@@ -68,12 +70,14 @@ function compat_config(config::NamedTuple)
        config[2] == 1
         return DigitsConfigV1(config[3])
     else
-        # We have some other NamedTuple, possibly from an earlier Legolas version. Trying constructing ` DigitsConfigV1`.
+        # We have some other NamedTuple, possibly from an earlier Legolas version. Trying constructing `DigitsConfigV1`.
         return DigitsConfigV1(config)
     end
 end
 
 @version DigitsRowV1 > LegolasFlux.ModelV1 begin
+    # parametrize the row type on the weights type (copied from ModelV1)
+    weights::(<:Union{Missing,Weights}) = ismissing(weights) ? missing : Weights(weights)
     config::Union{<:NamedTuple,DigitsConfigV1} = compat_config(config)
     epoch::Union{Missing,Int}
     accuracy::Union{Missing,Float32}

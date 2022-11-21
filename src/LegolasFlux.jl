@@ -84,6 +84,8 @@ ArrowTypes.JuliaType(::Val{WEIGHTS_ARROW_NAME}) = Weights
 @schema "legolas-flux.model" Model
 
 @version ModelV1 begin
+    # expose the concrete type of `weights` as a type parameter of `ModelV1`
+    # see https://github.com/beacon-biosignals/Legolas.jl/blob/main/examples/tour.jl#L291
     weights::(<:Union{Missing,Weights}) = ismissing(weights) ? missing : Weights(weights)
     architecture_version::Union{Missing,Int}
 end
