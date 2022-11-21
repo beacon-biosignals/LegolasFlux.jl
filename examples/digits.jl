@@ -63,11 +63,13 @@ end
 
 compat_config(config::DigitsConfigV1) = config
 function compat_config(config::NamedTuple)
+    # This is how these deserialize from Legolas v0.4
     if haskey(config, 1) && config[1] == "digits-config" && haskey(config, 2) &&
        config[2] == 1
         return DigitsConfigV1(config[3])
     else
-        return DigitsConfig(config)
+        # We have some other NamedTuple, possibly from an earlier Legolas version. Trying constructing ` DigitsConfigV1`.
+        return DigitsConfigV1(config)
     end
 end
 
