@@ -88,9 +88,6 @@ ArrowTypes.JuliaType(::Val{WEIGHTS_ARROW_NAME}) = Weights
     architecture_version::Union{Missing,Int}
 end
 
-# Backwards compat
-const ModelRow = ModelV1
-
 #####
 ##### Utilities
 #####
