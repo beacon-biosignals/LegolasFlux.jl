@@ -63,7 +63,8 @@ end
 
 compat_config(config::DigitsConfigV1) = config
 function compat_config(config::NamedTuple)
-    if haskey(config, 1) && config[1] == "digits-config" && haskey(config, 2) && config[2] == 1
+    if haskey(config, 1) && config[1] == "digits-config" && haskey(config, 2) &&
+       config[2] == 1
         return DigitsConfigV1(config[3])
     else
         return DigitsConfig(config)
@@ -71,9 +72,9 @@ function compat_config(config::NamedTuple)
 end
 
 @version DigitsRowV1 > LegolasFlux.ModelV1 begin
-    config::Union{<:NamedTuple, DigitsConfigV1} = compat_config(config)
-    epoch::Union{Missing, Int}
-    accuracy::Union{Missing, Float32}
+    config::Union{<:NamedTuple,DigitsConfigV1} = compat_config(config)
+    epoch::Union{Missing,Int}
+    accuracy::Union{Missing,Float32}
 end
 
 # Construct a `DigitsRowV1` from a model by collecting the weights.
