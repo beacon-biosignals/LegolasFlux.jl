@@ -3,6 +3,11 @@
 [![CI](https://github.com/beacon-biosignals/LegolasFlux.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/beacon-biosignals/LegolasFlux.jl/actions/workflows/CI.yml)
 [![codecov](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl/branch/main/graph/badge.svg?token=NHYUL22HCC)](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl)
 
+### Note: Upgrading from LegolasFlux v0.1.x to v0.2?
+The only change is an update to Legolas v0.5. Be sure to check out the [guidance for updating Legolas to v0.5](https://beacon-biosignals.github.io/Legolas.jl/previews/PR71/upgrade/) along with the rest of Legolas's documentation and tour.
+
+---
+
 LegolasFlux provides some simple functionality to use [Legolas.jl](https://github.com/beacon-biosignals/Legolas.jl/)'s
 extensible Arrow schemas as means to serialize Flux models similarly to using Flux's `params` and `loadparams!`
 (instead, we export similar functions `fetch_weights` and `load_weights!` which handle layers like `BatchNorm` correctly for this purpose).
