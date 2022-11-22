@@ -8,20 +8,23 @@ using StableRNGs
 using Flux: onehotbatch, onecold, crossentropy, throttle
 using Base.Iterators: repeated, partition
 using Legolas, LegolasFlux
+using Legolas: @schema, @version
 using Tables
 
 # This should store all the information needed
 # to construct the model.
-const DigitsConfig = Legolas.@row("digits-config@1",
-                                  seed::Int = 5,
-                                  dropout_rate::Float32 = 0.0f1,)
+@schema "digits-config" DigitsConfig
+@version DigitsConfigV1 begin
+    seed::Int = coalesce(seed, 5)
+    dropout_rate::Float32 = coalesce(dropout_rate, 0.0f1)
+end
 
 # Here's our model object itself, just a `DigitsConfig` and
 # a `chain`. We keep the config around so it's easy to save out
 # later.
 struct DigitsModel
     chain::Chain
-    config::DigitsConfig
+    config::DigitsConfigV1
 end
 
 # Ensure Flux can recurse into our model to find params etc
@@ -30,7 +33,7 @@ Flux.@functor DigitsModel (chain,)
 # Construct the actual model from a config object. This is the only
 # constructor that should be used, to ensure the model is created just
 # from the config object alone.
-function DigitsModel(config::DigitsConfig=DigitsConfig())
+function DigitsModel(config::DigitsConfigV1=DigitsConfigV1())
     dropout_rate = config.dropout_rate
     Random.seed!(config.seed)
     chain = Chain(Dropout(dropout_rate),
@@ -56,19 +59,38 @@ end
 
 # Here, we define a schema extension of the `legolas-flux.model` schema.
 # We add our `DigitsConfig` object, as well as the epoch and accuracy.
-const DigitsRow = Legolas.@row("digits.model@1" > "legolas-flux.model@1",
-                               config::DigitsConfig = DigitsConfig(config),
-                               epoch::Union{Missing,Int},
-                               accuracy::Union{Missing,Float32})
+@schema "digits.model" DigitsRow
 
-# Construct a `DigitsRow` from a model by collecting the weights.
-# This can then be saved with e.g. `LegolasFlux.write_model_row`.
-function DigitsRow(model::DigitsModel; epoch=missing, accuracy=missing)
-    return DigitsRow(; weights=fetch_weights(model), model.config, epoch, accuracy)
+# construct a `DigitsConfigV1` with support for older Legolas serialization formats
+# to support backwards compatibility
+compat_config(config::DigitsConfigV1) = config
+function compat_config(config::NamedTuple)
+    # This is how these deserialize from Legolas v0.4
+    if haskey(config, 1) && config[1] == "digits-config" && haskey(config, 2) &&
+       config[2] == 1
+        return DigitsConfigV1(config[3])
+    else
+        # We have some other NamedTuple, possibly from an earlier Legolas version. Trying constructing `DigitsConfigV1`.
+        return DigitsConfigV1(config)
+    end
 end
 
-# Construct a `DigitsModel` from a row satisfying the `DigitsRow` schema,
-# i.e. one with a `weights` and `config::DigitsConfig`.
+@version DigitsRowV1 > LegolasFlux.ModelV1 begin
+    # parametrize the row type on the weights type (copied from ModelV1)
+    weights::(<:Union{Missing,Weights}) = ismissing(weights) ? missing : Weights(weights)
+    config::Union{<:NamedTuple,DigitsConfigV1} = compat_config(config)
+    epoch::Union{Missing,Int}
+    accuracy::Union{Missing,Float32}
+end
+
+# Construct a `DigitsRowV1` from a model by collecting the weights.
+# This can then be saved with e.g. `LegolasFlux.write_model_row`.
+function DigitsRowV1(model::DigitsModel; epoch=missing, accuracy=missing)
+    return DigitsRowV1(; weights=fetch_weights(model), model.config, epoch, accuracy)
+end
+
+# Construct a `DigitsModel` from a row satisfying the `DigitsRowV1` schema,
+# i.e. one with a `weights` and `config::DigitsConfigV1`.
 # This could be the result of `LegolasFlux.read_model_row`.
 function DigitsModel(row)
     m = DigitsModel(row.config)
@@ -122,9 +144,9 @@ m = DigitsModel()
 # increase N to actually train more than a tiny amount
 acc = train_model!(m; N=10)
 
-# Let's serialize out the weights into a `DigitsRow`.
+# Let's serialize out the weights into a `DigitsRowV1`.
 # We could save this here with `write_model_row`.
-row = DigitsRow(m; epoch=1, accuracy=acc)
+row = DigitsRowV1(m; epoch=1, accuracy=acc)
 
 testmode!(m)
 input = tX[:, :, :, 1:1]
@@ -144,9 +166,9 @@ path = joinpath(pkgdir(LegolasFlux), "examples", "test.digits-model.arrow")
 # Legolas.write(path, [row], Legolas.Schema("digits.model@1"))
 # We don't run this every time, since we want to test that we can continue to deserialize previously saved out weights.
 table = Legolas.read(path)
-roundtripped = DigitsRow(only(Tables.rows(table)))
-@test roundtripped isa DigitsRow
-@test roundtripped.config isa DigitsConfig
+roundtripped = DigitsRowV1(only(Tables.rows(table)))
+@test roundtripped isa DigitsRowV1
+@test roundtripped.config isa DigitsConfigV1
 
 roundtripped_model = DigitsModel(roundtripped)
 output3 = roundtripped_model(input)

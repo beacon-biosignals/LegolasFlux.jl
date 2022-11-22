@@ -1,12 +1,12 @@
 using LegolasFlux
 using Test
 using Flux, LegolasFlux
-using LegolasFlux: Weights, FlatArray, ModelRow
+using LegolasFlux: Weights, FlatArray, ModelV1
 using Flux: params
 using Arrow
 using Random
 using StableRNGs
-
+using Legolas: @version, @schema
 function make_my_model()
     return Chain(Dense(1, 10), Dense(10, 10), Dense(10, 1))
 end
@@ -19,7 +19,7 @@ end
 @testset "Roundtripping simple model" begin
     try
         # quick test with `missing` weights.
-        model_row = ModelRow(; weights=missing)
+        model_row = ModelV1(; weights=missing)
         write_model_row("my_model.model.arrow", model_row)
         rt = read_model_row("my_model.model.arrow")
         @test isequal(model_row, rt)
@@ -27,7 +27,7 @@ end
         my_model = make_my_model()
         load_weights!(my_model, test_weights())
 
-        model_row = ModelRow(; weights=collect(fetch_weights(my_model)))
+        model_row = ModelV1(; weights=collect(fetch_weights(my_model)))
         write_model_row("my_model.model.arrow", model_row)
 
         fresh_model = make_my_model()
@@ -55,7 +55,7 @@ Flux.@functor MyArrayModel
         weights = fetch_weights(m)
         @test length(weights) == 6
 
-        model_row = ModelRow(; weights=collect(weights))
+        model_row = ModelV1(; weights=collect(weights))
         write_model_row("my_model.model.arrow", model_row)
 
         new_model_row = read_model_row("my_model.model.arrow")
