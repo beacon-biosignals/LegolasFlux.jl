@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl/branch/main/graph/badge.svg?token=NHYUL22HCC)](https://codecov.io/gh/beacon-biosignals/LegolasFlux.jl)
 
 ### Note: Upgrading from LegolasFlux v0.1.x to v0.2?
-The only change is an update to Legolas v0.5. Be sure to check out the [guidance for updating Legolas to v0.5](https://beacon-biosignals.github.io/Legolas.jl/previews/PR71/upgrade/) along with the rest of Legolas's documentation and tour.
+The only change is an update to Legolas v0.5. Be sure to check out the [guidance for updating Legolas to v0.5](https://beacon-biosignals.github.io/Legolas.jl/dev/upgrade/) along with the rest of Legolas's documentation and tour.
 
 ---
 
