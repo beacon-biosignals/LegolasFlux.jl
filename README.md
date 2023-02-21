@@ -71,7 +71,9 @@ a schema extension of the `legolas-flux.model` schema:
 using Legolas, LegolasFlux
 using Legolas: @schema, @version
 @schema "digits-model" DigitsRow
-@version DigitsRowV1 begin
+@version DigitsRowV1 > ModelV1 begin
+    # re-declare this field so that DigitsRowV1 has a type parameter for weights
+    weights::(<:Union{Missing,Weights})
     epoch::Union{Missing, Int}
     accuracy::Union{Missing, Float32}
     commit_sha::Union{Missing, String}

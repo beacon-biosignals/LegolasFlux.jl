@@ -1,12 +1,12 @@
 using LegolasFlux
 using Test
-using Flux, LegolasFlux
+using Flux
 using LegolasFlux: Weights, FlatArray, ModelV1
 using Flux: params
 using Arrow
 using Random
 using StableRNGs
-using Legolas: @version, @schema
+using Legolas: Legolas, @version, @schema
 function make_my_model()
     return Chain(Dense(1, 10), Dense(10, 10), Dense(10, 1))
 end
@@ -14,6 +14,14 @@ end
 function test_weights()
     shapes = [(10, 1), (10,), (10, 10), (10,), (1, 10), (1,)]
     return [reshape(Float32.(1:prod(s)), s) for s in shapes]
+end
+
+@schema "digits-model" DigitsRow
+@version DigitsRowV1 > ModelV1 begin
+    weights::(<:Union{Missing,Weights})
+    epoch::Union{Missing, Int}
+    accuracy::Union{Missing, Float32}
+    commit_sha::Union{Missing, String}
 end
 
 @testset "Roundtripping simple model" begin
@@ -41,6 +49,41 @@ end
         @test all(x -> eltype(x) == Float32, weights)
     finally
         rm("my_model.model.arrow")
+    end
+end
+
+@testset "Roundtripping extended model" begin
+    model_path = "my_model.digits.model.arrow"
+    try
+        model_row = DigitsRowV1(; epoch=1, accuracy=2.0f0, commit_sha="blah")
+        write_model_row(model_path, model_row, DigitsRowV1SchemaVersion())
+        rt = read_model_row(model_path)
+        @test rt isa DigitsRowV1
+        @test isequal(model_row, rt)
+
+        # default schema is ModelV1
+        write_model_row(model_path, model_row)
+        rt = read_model_row(model_path)
+        @test rt isa ModelV1
+
+        # roundtripping weights with extended schema
+        my_model = make_my_model()
+        load_weights!(my_model, test_weights())
+
+        model_row = DigitsRowV1(; weights=collect(fetch_weights(my_model)),
+                                epoch=1, accuracy=2.0f0, commit_sha="blah")
+        write_model_row(model_path, model_row, DigitsRowV1SchemaVersion())
+        fresh_model = make_my_model()
+
+        model_row = read_model_row(model_path)
+        @test model_row isa DigitsRowV1
+        weights = collect(model_row.weights)
+        load_weights!(fresh_model, weights)
+
+        @test collect(params(fresh_model)) == weights == test_weights()
+        @test all(x -> eltype(x) == Float32, weights)
+    finally
+        rm(model_path)
     end
 end
 
