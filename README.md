@@ -89,7 +89,6 @@ write_model_row(path, my_digits_row, DigitsRowV1SchemaVersion())
 ```
 so that later, when I call `read_model_row` on this path, I'll get back a `DigitsRowV1` instance.
 
-
 Note in this example the schema is called `digits.model` instead of just say `digits`, since the package Digits might want to
 create other Legolas schemas as well at some point.
 
