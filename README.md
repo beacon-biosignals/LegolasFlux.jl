@@ -71,7 +71,9 @@ a schema extension of the `legolas-flux.model` schema:
 using Legolas, LegolasFlux
 using Legolas: @schema, @version
 @schema "digits-model" DigitsRow
-@version DigitsRowV1 begin
+@version DigitsRowV1 > ModelV1 begin
+    # re-declare this ModelV1 field as parametric for this schema as well
+    weights::(<:Union{Missing,Weights})
     epoch::Union{Missing, Int}
     accuracy::Union{Missing, Float32}
     commit_sha::Union{Missing, String}
@@ -80,6 +82,12 @@ end
 
 Now I can use a `DigitsRowV1` much like LegolasFlux's `ModelV1`. It has the same required `weights` column and optional `architecture_version` column, as well as the additional `epoch`, `accuracy`, and `commit_sha` columns. As a naming convention,
 one might name files produced by this row as e.g. `training_run.digits.model.arrow`.
+
+When writing out a `DigitsRowV1`, I'll pass the schema version like so
+```julia
+write_model_row(path, my_digits_row, DigitsRowV1SchemaVersion())
+```
+so that later, when I call `read_model_row` on this path, I'll get back a `DigitsRowV1` instance.
 
 Note in this example the schema is called `digits.model` instead of just say `digits`, since the package Digits might want to
 create other Legolas schemas as well at some point.

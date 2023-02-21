@@ -95,27 +95,34 @@ end
 #####
 
 """
-    write_model_row(io_or_path; kwargs...)
+    write_model_row(io_or_path, row[, schema=ModelV1SchemaVersion()]; kwargs...)
 
 A light wrapper around `Legolas.write` to write a table
 with a single row. `kwargs` are forwarded to an internal
 invocation of `Arrow.write`.
 """
-function write_model_row(io_or_path, row; kwargs...)
-    return Legolas.write(io_or_path, [row], ModelV1SchemaVersion(); validate=true, kwargs...)
+function write_model_row(io_or_path, row,
+                         schema::Legolas.SchemaVersion=ModelV1SchemaVersion();
+                         kwargs...)
+    return Legolas.write(io_or_path, [row], schema; validate=true, kwargs...)
 end
 
 """
-    read_model_row(io_or_path) -> ModelV1
+    read_model_row(io_or_path) -> Legolas.AbstractRecord
 
 A light wrapper around `Legolas.read` to retrieve
-a `ModelV1` from a table with a single row, such
-as the output of [`write_model_row`](@ref)`.
+an `AbstractRecord` from a table with a single row, such
+as the output of [`write_model_row`](@ref)`.  The schema version
+is inferred from the `Arrow.Table` (as with `Legolas.read`).
 """
 function read_model_row(io_or_path)
     table = Legolas.read(io_or_path; validate=true)
-    rows = ModelV1.(Tables.rows(table))
-    return only(rows)
+    # because we used validate=true above, we know that we can extract a usable
+    # SchemaVersion from the table.
+    sv = Legolas.extract_schema_version(table)
+    RecordType = Legolas.record_type(sv)
+    row = only(Tables.rows(table))
+    return RecordType(row)
 end
 
 include("functors.jl")

@@ -1,12 +1,12 @@
 using LegolasFlux
 using Test
-using Flux, LegolasFlux
+using Flux
 using LegolasFlux: Weights, FlatArray, ModelV1
 using Flux: params
 using Arrow
 using Random
 using StableRNGs
-using Legolas: @version, @schema
+using Legolas: Legolas, @version, @schema
 function make_my_model()
     return Chain(Dense(1, 10), Dense(10, 10), Dense(10, 1))
 end
