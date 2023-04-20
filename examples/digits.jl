@@ -33,6 +33,7 @@ Flux.@functor DigitsModel (chain,)
 function DigitsModel(config::DigitsConfig=DigitsConfig())
     dropout_rate = config.dropout_rate
     Random.seed!(config.seed)
+    D = Dense(10, 10)
     chain = Chain(Dropout(dropout_rate),
                   Conv((3, 3), 1 => 32, relu),
                   BatchNorm(32, relu),
@@ -47,6 +48,8 @@ function DigitsModel(config::DigitsConfig=DigitsConfig())
                   x -> reshape(x, :, size(x, 4)),
                   Dropout(dropout_rate),
                   Dense(90, 10),
+                  D,
+                  D, # test weight-sharing
                   softmax)
     return DigitsModel(chain, config)
 end
@@ -118,6 +121,7 @@ function train_model!(m; N=N_train)
 end
 
 m = DigitsModel()
+@test m.chain[end-2] === m.chain[end-1] # test weight-sharing
 
 # increase N to actually train more than a tiny amount
 acc = train_model!(m; N=10)
@@ -152,8 +156,10 @@ roundtripped_model = DigitsModel(roundtripped)
 output3 = roundtripped_model(input)
 @test output3 isa Matrix{Float32}
 
+@test roundtripped_model.chain[end-2] === roundtripped_model.chain[end-1] # test weight-sharing
+
 # Here, we've hardcoded the results at the time of serialization.
 # This lets us check that the model we've saved gives the same answers now as it did then.
 # It is OK to update this test w/ a new reference if the answers are *supposed* to change for some reason. Just make sure that is the case.
 @test output3 ≈
-      Float32[0.09915658; 0.100575574; 0.101189725; 0.10078623; 0.09939819; 0.099650174; 0.1013182; 0.09952383; 0.0991391; 0.09926238;;]
+      Float32[0.096030906; 0.105671346; 0.09510324; 0.117868274; 0.112540945; 0.08980863; 0.062402092; 0.09776583; 0.11317684; 0.109631866;;]
