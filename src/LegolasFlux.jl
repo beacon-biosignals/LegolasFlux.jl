@@ -33,6 +33,7 @@ Base.hash(f::FlatArray, h::UInt) = hash(:FlatArray, hash(f.vec, hash(f.size, h))
 const FLATARRAY_ARROW_NAME = Symbol("JuliaLang.LegolasFlux.FlatArray")
 ArrowTypes.arrowname(::Type{<:FlatArray}) = FLATARRAY_ARROW_NAME
 ArrowTypes.JuliaType(::Val{FLATARRAY_ARROW_NAME}) = FlatArray
+ArrowTypes.fromarrow(::Type{<:FlatArray}, vec, size) = FlatArray{eltype(vec)}(vec, size)
 
 #####
 ##### `Weights`
